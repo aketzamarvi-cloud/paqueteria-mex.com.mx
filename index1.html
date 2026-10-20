@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalExpress - Paquetería Móvil</title>
+    <link rel="stylesheet" href="css1.css">
+    <!-- Librería de Códigos de Barras -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- Librería Leaflet para Mapas -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR MÓVIL -->
+    <div class="top-bar">
+        <span>📞 Tel: <strong>+52 (772) 123-4567</strong></span>
+        <button class="sign-in-btn" onclick="cambiarPestana('admin', event)">ADMIN</button>
+    </div>
+
+    <!-- ENCABEZADO PRINCIPAL -->
+    <header class="app-header">
+        <div class="logo-brand" onclick="cambiarPestana('registro', event)">
+            <div class="logo-icon">GO</div>
+            <span class="logo-text">GLOBAL<span>EXPRESS</span></span>
+        </div>
+        
+        <!-- MENÚ DE NAVEGACIÓN MÓVIL -->
+        <nav class="nav-menu">
+            <a href="#" onclick="cambiarPestana('registro', event)" class="nav-link active">Nuevo</a>
+            <a href="#" onclick="cambiarPestana('rastreo', event)" class="nav-link">Rastreo</a>
+            <a href="#" onclick="cambiarPestana('contactos', event)" class="nav-link">Agenda</a>
+            <a href="#" onclick="cambiarPestana('admin', event)" class="nav-link admin-nav">Admin</a>
+            <a href="#" onclick="cambiarPestana('papelera', event)" class="nav-link trash-nav">Papelera</a>
+        </nav>
+    </header>
+
+    <!-- HERO BANNER MÓVIL -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <span class="sub-tag">MENSAJERÍA EXPRESS</span>
+            <h1>ENVÍOS FÁCILES Y SEGUROS</h1>
+            <p>Cotiza, genera guías térmicas e imprime directamente desde tu teléfono móvil.</p>
+            
+            <div class="quick-track-bar">
+                <input type="text" id="quickTrackingInput" placeholder="Nº de guía...">
+                <button type="button" onclick="rastreoRapido()">Buscar</button>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-container">
+
+        <!-- SECCIÓN 1: NUEVO ENVÍO -->
+        <section id="seccion-registro" class="app-section">
+            <div class="section-title-wrapper">
+                <h2>Registrar Nuevo Envío</h2>
+                <div class="title-underline"></div>
+                <p>Autocompleta remitentes o destinatarios frecuentes de tu agenda.</p>
+            </div>
+
+            <form id="envioForm" onsubmit="guardarYGenerarEnvio(event)" class="main-form-card">
+                <div class="form-grid">
+                    
+                    <!-- REMITENTE -->
+                    <div class="form-card-box">
+                        <h3>Remitente (Origen)</h3>
+                        
+                        <div class="autocomplete-container">
+                            <label>Buscar en Clientes Frecuentes</label>
+                            <input type="text" id="busquedaRemitente" placeholder="Escribe para buscar..." oninput="filtrarSugerenciasRemitente(this.value)" autocomplete="off">
+                            <div id="sugerenciasRemitente" class="suggestions-box" style="display:none;"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="remNombre" required placeholder="Ej. Carlos Mendoza">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="remTel" required placeholder="Ej. 7721234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección / Municipio</label>
+                            <input type="text" id="remDir" required placeholder="Ej. Centro, Ixmiquilpan">
+                        </div>
+                    </div>
+
+                    <!-- DESTINATARIO -->
+                    <div class="form-card-box">
+                        <h3>Destinatario (Destino)</h3>
+                        
+                        <div class="autocomplete-container">
+                            <label>Buscar en Clientes Frecuentes</label>
+                            <input type="text" id="busquedaDestinatario" placeholder="Escribe para buscar..." oninput="filtrarSugerenciasDestinatario(this.value)" autocomplete="off">
+                            <div id="sugerenciasDestinatario" class="suggestions-box" style="display:none;"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="destNombre" required placeholder="Ej. Ana Sofía">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="destTel" required placeholder="Ej. 7729876543">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección y C.P.</label>
+                            <input type="text" id="destDir" required placeholder="Ej. San Antonio, 42300">
+                        </div>
+                    </div>
+
+                    <!-- PAQUETE Y PAGOS -->
+                    <div class="form-card-box full-width">
+                        <h3>Detalles del Paquete & Cobro</h3>
+                        <div class="form-group">
+                            <label>Descripción del Producto</label>
+                            <input type="text" id="descProducto" required placeholder="Ej. Ropa, Electrónica">
+                        </div>
+                        
+                        <div class="grid-2-mobile">
+                            <div class="form-group">
+                                <label>Peso (Kg)</label>
+                                <input type="number" step="0.01" id="peso" required placeholder="1.5">
+                            </div>
+                            <div class="form-group">
+                                <label>Dimensiones (cm)</label>
+                                <input type="text" id="dimensiones" required placeholder="30x20x15">
+                            </div>
+                        </div>
+                        
+                        <div class="grid-2-mobile" style="margin-top: 4px;">
+                            <div class="form-group">
+                                <label>Subtotal ($)</label>
+                                <input type="number" step="0.01" id="precioBase" required placeholder="150.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Método de Pago</label>
+                                <select id="metodoPago">
+                                    <option value="Efectivo en Sucursal">Efectivo</option>
+                                    <option value="OXXO Pay">OXXO Pay</option>
+                                    <option value="PayPal / Tarjeta">Tarjeta / PayPal</option>
+                                    <option value="Transferencia SPEI">SPEI</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 4px;">
+                            <label>Estado Inicial</label>
+                            <select id="estado">
+                                <option value="Pendiente">Pendiente de recolección</option>
+                                <option value="En camino">En camino</option>
+                                <option value="Entregado">Entregado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 8px;">
+                            <label>Foto de Evidencia (Opcional)</label>
+                            <input type="file" id="fotoPaquete" accept="image/*" capture="environment">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn-orange">Generar Guía y Cobro</button>
+            </form>
+
+            <!-- VISTA PREVIA DE ETIQUETA / TICKET -->
+            <div class="ticket-preview-wrapper" id="ticketPreview" style="display:none;">
+                <h3>Comprobante Generado</h3>
+                
+                <div id="ticketPrintArea">
+                    <div class="ticket universal-ticket">
+                        <div class="ticket-header">
+                            <h2>GLOBAL EXPRESS</h2>
+                            <span>COMPROBANTE MÓVIL</span>
+                        </div>
+                        <div class="ticket-section ticket-highlight">
+                            GUÍA: <span id="lblGuia"></span> | <span id="lblProdDesc"></span>
+                        </div>
+                        
+                        <div class="barcode-box">
+                            <svg id="barcode"></svg>
+                        </div>
+
+                        <div class="ticket-section" style="font-size:10px;">
+                            <strong>ORIGEN:</strong> <span id="lblRemNombre"></span> (<span id="lblRemTel"></span>)<br>
+                            <span id="lblRemDir"></span><br>
+                            <strong>DESTINO:</strong> <span id="lblDestNombre"></span> (<span id="lblDestTel"></span>)<br>
+                            <span id="lblDestDir"></span>
+                        </div>
+
+                        <div class="ticket-section" id="ticketFotoContainer" style="text-align:center; display:none;">
+                            <img id="lblFoto" src="" alt="Foto" style="max-height: 60px; border-radius: 4px; margin-top:3px;">
+                        </div>
+
+                        <div class="ticket-section ticket-finance">
+                            Método: <span id="lblMetodoPago"></span><br>
+                            Subtotal: $<span id="lblSubtotal"></span> | IVA (16%): $<span id="lblIva"></span><br>
+                            <strong>TOTAL: $<span id="lblTotal"></span></strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="imprimirEtiquetaGrande()" class="action-btn-green">Imprimir Etiqueta Estándar</button>
+
+                <!-- TICKET TÉRMICO POS OPTIMIZADO -->
+                <div class="thermal-ticket-section">
+                    <hr class="separator-line">
+                    <h3>Ticket Térmico POS</h3>
+                    <div class="thermal-size-selector">
+                        <button type="button" class="size-btn active" onclick="cambiarTamanoThermal('width-58', event)">58mm</button>
+                        <button type="button" class="size-btn" onclick="cambiarTamanoThermal('width-80', event)">80mm</button>
+                        <button type="button" class="size-btn" onclick="cambiarTamanoThermal('width-100', event)">100mm</button>
+                    </div>
+
+                    <div id="thermalPrintArea">
+                        <div id="thermalTicket" class="thermal-ticket-box width-58">
+                            <div class="t-center">
+                                <strong>GLOBAL EXPRESS</strong><br>
+                                <span>Ticket Móvil</span><br>
+                                --------------------------------
+                            </div>
+                            <div><strong>Guía:</strong> <span id="thGuia"></span></div>
+                            <div><strong>Fecha:</strong> <span id="thFecha"></span></div>
+                            <div><strong>Prod:</strong> <span id="thProducto"></span></div>
+                            <div><strong>Pago:</strong> <span id="thMetodo"></span></div>
+                            --------------------------------
+                            <div><strong>DE:</strong> <span id="thRem"></span></div>
+                            <div><strong>PARA:</strong> <span id="thDest"></span></div>
+                            --------------------------------
+                            <div>Subtotal: $<span id="thSubtotal"></span></div>
+                            <div>IVA (16%): $<span id="thIva"></span></div>
+                            <div><strong>TOTAL: $<span id="thTotal"></span></strong></div>
+                            --------------------------------
+                            <div class="t-center barcode-box">
+                                <svg id="thermalBarcode"></svg>
+                            </div>
+                            <div class="t-center" style="font-size:9px; margin-top:4px;">
+                                ¡Gracias por su compra!
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="imprimirThermal()" class="submit-btn-orange" style="background:#f59e0b;">Imprimir Ticket Térmico</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: RASTREO -->
+        <section id="seccion-rastreo" class="app-section" style="display:none;">
+            <div class="section-title-wrapper">
+                <h2>Rastreo de Envíos</h2>
+                <div class="title-underline"></div>
+                <p>Consulta el estatus actual de tu paquete.</p>
+            </div>
+            <div class="search-box-wrap">
+                <input type="text" id="inputRastreo" placeholder="Número de guía...">
+                <button onclick="buscarPaquete()" class="submit-btn-orange" style="width:auto; margin-top:0; padding:10px 15px;">Buscar</button>
+            </div>
+            <div id="resultadoRastreo" style="margin-top: 15px;"></div>
+        </section>
+
+        <!-- SECCIÓN 3: AGENDA -->
+        <section id="seccion-contactos" class="app-section" style="display:none;">
+            <div class="section-title-wrapper">
+                <h2>Agenda de Clientes</h2>
+                <div class="title-underline"></div>
+                <p>Historial de clientes frecuentes guardados.</p>
+            </div>
+            <div id="listaContactos"></div>
+        </section>
+
+        <!-- SECCIÓN 4: ADMIN -->
+        <section id="seccion-admin" class="app-section" style="display:none;">
+            <div class="section-title-wrapper">
+                <h2>Panel de Administración</h2>
+                <div class="title-underline"></div>
+                <p>Control operativo y cambios de estatus.</p>
+            </div>
+            <div id="panelAdminEnvios"></div>
+        </section>
+
+        <!-- SECCIÓN 5: PAPELERA -->
+        <section id="seccion-papelera" class="app-section" style="display:none;">
+            <div class="section-title-wrapper">
+                <h2>Papelera de Reciclaje</h2>
+                <div class="title-underline"></div>
+                <p>Elementos eliminados listos para restaurar.</p>
+            </div>
+            <div id="listaPapelera"></div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER MÓVIL -->
+    <footer class="app-footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 GlobalExpress Logistics Móvil.</p>
+        </div>
+    </footer>
+
+    <script src="script1.js"></script>
+</body>
+</html>
